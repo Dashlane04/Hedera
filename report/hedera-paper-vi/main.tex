@@ -1,0 +1,259 @@
+% !TeX program = xelatex
+\documentclass[conference,a4paper]{IEEEtran}
+\usepackage{amsmath,booktabs,cite,graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\definecolor{hedblue}{HTML}{295D7A}
+\definecolor{hedrust}{HTML}{9B4B32}
+\usepackage{unicode-math}
+\setmainfont{texgyretermes}[
+  Extension=.otf,
+  UprightFont=*-regular,
+  BoldFont=*-bold,
+  ItalicFont=*-italic,
+  BoldItalicFont=*-bolditalic
+]
+\setmathfont{texgyretermes-math.otf}
+\usepackage[unicode,hidelinks]{hyperref}
+\graphicspath{{figures/}}
+\renewcommand{\abstractname}{Tóm tắt}
+\renewcommand{\IEEEkeywordsname}{Từ khóa}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\refname}{Tài liệu tham khảo}
+\setlength{\emergencystretch}{1em}
+\renewcommand{\dblfloatpagefraction}{.8}
+\newcommand{\widefigure}[3]{%
+  \begin{figure*}[!tp]\centering
+  \includegraphics[width=\textwidth]{#1}
+  \caption{#2}\label{fig:#3}
+  \end{figure*}}
+\newcommand{\columnfigure}[3]{%
+  \begin{figure}[!t]\centering
+  \includegraphics[width=\columnwidth]{#1}
+  \caption{#2}\label{fig:#3}
+  \end{figure}}
+\newcommand{\widediagram}[3]{%
+  \begin{figure*}[!tp]\centering
+  \input{diagrams/#1}%
+  \caption{#2}\label{fig:#3}
+  \end{figure*}}
+\input{numbers}
+\hypersetup{pdftitle={Tái hiện và kiểm chứng Hedera trên mạng fat-tree},pdfauthor={Đoàn Việt Đức},pdflang={vi}}
+
+\title{Tái hiện và kiểm chứng Hedera trên mạng fat-tree}
+\author{\IEEEauthorblockN{Đoàn Việt Đức}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Nghiên cứu này tái hiện bộ lập lịch luồng Hedera trên mạng fat-tree bằng ns-3.47 và một mô hình cấp luồng. Trong thí nghiệm 16 máy với mẫu stride 8 và liên kết 20 Mbit/s, ECMP, Global First Fit (GFF) và simulated annealing (SA) lần lượt đạt goodput \CompactEcmp, \CompactGff{} và \CompactSa{} Mbit/s. Cả GFF và SA cũng vượt ECMP trong mô hình cấp luồng với 1.024 máy và tải song ánh. Khi duyệt toàn bộ cách gán đường trên 24 bộ luồng nhỏ, ràng buộc gán core theo đích làm tăng giá trị tối ưu của hàm phạt quá tải trong \RestrictionCases{} trường hợp. Các thí nghiệm bổ sung đo độ nhạy với cấu hình TCP, độ trễ cài đường, khả năng phục hồi sau lỗi liên kết và thời gian hoàn thành shuffle.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Hedera, fat-tree, ECMP, lập lịch luồng, ns-3, tái hiện thực nghiệm.
+\end{IEEEkeywords}
+
+\section{Giới thiệu}
+Trong mạng fat-tree~\cite{fattree}, một cặp máy có thể có nhiều đường ngắn nhất. ECMP dùng hàm băm để chọn một trong các đường đó. Hai luồng lớn có thể đi qua cùng một liên kết dù các đường khác còn dư dung lượng. Hedera~\cite{hedera} phát hiện các luồng lớn, ước lượng nhu cầu băng thông rồi dùng GFF hoặc SA để chọn lại đường.
+
+Bài báo so sánh hiệu năng của ECMP, GFF và SA trên các mẫu tải khác nhau, đồng thời đo ảnh hưởng của ràng buộc gán core theo đích đến chất lượng nghiệm và thời gian chạy của SA. Các thí nghiệm với chu kỳ lập lịch và lỗi liên kết cho thấy bộ điều khiển mất bao lâu để cài đường và mạng phục hồi đến mức nào sau khi đổi đường.
+
+\section{Kiến trúc và triển khai}
+\subsection{Fat-tree và đường mặc định ECMP}
+\widediagram{fat-tree}{Mạng fat-tree \(k=4\) có 4 switch core, 8 switch aggregation, 8 switch edge và 16 máy. Hai nét đậm chỉ hai trong bốn đường ngắn nhất giữa \(E_0\) của pod 0 và \(E_0\) của pod 2.}{fat-tree}
+Trong fat-tree xây từ switch \(k\) cổng, mỗi pod có \(k/2\) switch edge và \(k/2\) switch aggregation. Mỗi edge nối với \(k/2\) máy và với mọi aggregation trong pod. Các switch core chia thành \(k/2\) nhóm, mỗi nhóm có \(k/2\) switch. Gói tin đi liên pod từ edge nguồn lên aggregation, qua core, rồi xuống aggregation và edge của pod đích. Với mỗi cặp máy liên pod, việc chọn aggregation ở nguồn và core trong nhóm tương ứng tạo ra \((k/2)^2\) đường ngắn nhất. Hình~\ref{fig:fat-tree} minh họa trường hợp \(k=4\). Mô hình ns-3.47~\cite{ns3} dùng liên kết điểm-điểm và TCP NewReno. Cấu hình tham chiếu dùng switch không nghẽn nội bộ (nonblocking) và giữ giới hạn băng thông ở card mạng (NIC) của mỗi máy.
+
+Trong thí nghiệm 16 máy, ECMP băm địa chỉ IP đích để chọn một đường trong tập đường cùng chi phí. Hai địa chỉ đích khác nhau có thể cho cùng kết quả chọn đường hoặc dẫn đến hai đường chung một liên kết. Nếu cả hai luồng truyền lâu và dùng nhiều băng thông, liên kết chung có thể quá tải dù các đường khác còn chỗ. Hedera giữ ECMP làm cơ chế mặc định và chỉ tính lại đường, cài luật chuyển tiếp cho những luồng được nhận diện là luồng lớn~\cite{hedera}.
+
+\subsection{Phát hiện luồng và ước lượng nhu cầu}
+\widefigure{architecture}{Vòng điều khiển của Hedera trong mô hình. Switch edge ở nguồn phát hiện luồng lớn, bộ điều khiển chọn đường, rồi các switch kích hoạt phiên bản luật chuyển tiếp mới.}{architecture}
+Switch edge ở nguồn đếm số byte dữ liệu, kể cả byte truyền lại. Mô hình dựa trên tốc độ đo được trong mỗi cửa sổ lấy mẫu và dùng ngưỡng \(10\%\) tốc độ NIC để nhận diện luồng lớn. Bộ điều khiển theo dõi luồng đã nhận diện cho tới khi luồng ngừng hoạt động.
+
+Tốc độ đo được có thể thấp vì luồng đang nghẽn trên đường hiện tại. Bộ điều khiển ước lượng tốc độ mà mỗi luồng có thể đạt khi chỉ chịu giới hạn của NIC ở hai đầu. Ở phía gửi, bộ ước lượng chia đều phần băng thông còn lại cho các luồng chưa được ấn định tốc độ. Nếu tổng nhu cầu ở phía nhận vượt dung lượng của NIC, bộ ước lượng hạ các mức cao xuống giới hạn chia sẻ ở đầu nhận rồi giữ cố định mức mới của các luồng bị giới hạn. Quá trình này lặp lại cho đến khi các mức ước lượng ổn định.
+
+\subsection{Global First Fit}
+\widediagram{ecmp-gff}{Hai luồng có cùng nhu cầu \(0{,}7\) đơn vị băng thông. Các thanh biểu diễn tải dự kiến trên liên kết từ \(E_0\) lên switch aggregation tương ứng ở pod nguồn. Vạch đứt đứng đánh dấu dung lượng \(1\).}{ecmp-gff}
+GFF xét từng luồng lớn dựa trên dung lượng còn lại của các liên kết~\cite{hedera}. Gọi \(R_\ell\) là tổng băng thông đã dành trước trên liên kết có hướng \(\ell\) và \(C_\ell\) là dung lượng của liên kết đó. Phần băng thông còn lại trên đường \(p\) do liên kết có ít dung lượng còn lại nhất quyết định.
+\begin{equation}
+  r(p)=\min_{\ell\in p}\left(C_\ell-R_\ell\right).
+  \label{eq:gff-residual}
+\end{equation}
+GFF chọn đường đầu tiên thỏa \(r(p)\ge d_f\), với \(d_f\) là nhu cầu của luồng \(f\) và dung sai \(10^{-12}\) trong bản triển khai. GFF cộng \(d_f\) vào \(R_\ell\) của từng liên kết trên đường đã chọn. Luồng giữ đường đó chừng nào nó còn hoạt động và đường còn khả dụng. Nếu không tìm được đường đủ băng thông, GFF dùng đường mặc định của ECMP.
+
+Trong Hình~\ref{fig:ecmp-gff}, hai luồng \(f_1:h_0\to h_8\) và \(f_2:h_1\to h_9\) đều cần \(0{,}7\), còn mỗi hướng của liên kết có dung lượng \(1\). Nếu ECMP đưa cả hai qua \(C_0\), tổng nhu cầu trên các liên kết chung lên \(1{,}4\). GFF xếp \(f_1\) qua \(C_0\) trước. Đến lượt \(f_2\), hai đường qua \(C_0\) và \(C_1\) cùng dùng một liên kết từ edge lên aggregation, nơi chỉ còn \(0{,}3\). GFF chọn đường qua \(C_2\) vì đường này còn đủ băng thông. GFF có thể xét luồng ngay khi phát hiện, nhưng kết quả phụ thuộc thứ tự xét và các đường đã gán trước đó.
+
+\subsection{Simulated annealing}
+\widediagram{sa-swap}{SA hoán đổi core của \(h_9\) và \(h_{10}\) trong pod 2. Nét liền nối những đích đang nhận luồng trong Hình~\ref{fig:ecmp-gff} với core được gán. Nét đứt chỉ các đích còn lại. \(A_0\) và \(A_1\) là hai nhóm aggregation tương ứng.}{sa-swap}
+SA xét cả tập luồng lớn trong mỗi kỳ lập lịch. Trong mỗi pod, một hoán vị xác định core gán cho từng máy đích. Các luồng liên pod đến cùng một máy đi qua core của máy đó. SA tạo một nghiệm lân cận bằng cách đổi core của hai máy trong cùng pod. Sau phép đổi, mỗi core vẫn được gán cho đúng một máy trong pod, dù nhiều luồng có thể đổi đường cùng lúc~\cite{hedera}. Hàm mục tiêu cộng phần tải vượt dung lượng trên mọi liên kết.
+\begin{equation}
+H(P)=\sum_{\ell}\max\!\left(0,\sum_{f:\ell\in P_f}d_f-C_{\ell}\right),
+\label{eq:energy}
+\end{equation}
+\(P_f\) là đường của luồng \(f\). Nhu cầu \(d_f\) và dung lượng \(C_\ell\) được chuẩn hóa theo tốc độ NIC. Khi thử một phép đổi, SA chỉ cần tính lại tải trên các liên kết thuộc đường cũ hoặc đường mới của các luồng bị ảnh hưởng. Nếu \(\Delta H=H_{\mathrm{mới}}-H_{\mathrm{cũ}}\le 0\), SA luôn chấp nhận phép đổi. Nếu \(\Delta H>0\), SA chấp nhận với xác suất \(\exp(-c\,\Delta H/T)\). Nhiệt độ \(T\) cao giúp SA dễ đi qua những nghiệm có mức quá tải lớn hơn để thoát khỏi cực tiểu cục bộ. Khi \(T\) giảm, các bước như vậy ít xảy ra hơn. Sau số vòng lặp đã định, SA trả về nghiệm tốt nhất từng gặp và có thể dùng nghiệm đó ở đầu kỳ sau.
+
+Trong Hình~\ref{fig:sa-swap}, \(h_8\) và \(h_9\) ban đầu dùng hai core khác nhau trong cùng nhóm aggregation. Liên kết đi lên ở pod nguồn và liên kết đi xuống edge đích đều quá tải \(0{,}4\), nên \(H=0{,}8\). Đổi core của \(h_9\) với \(h_{10}\) chuyển \(f_2\) sang nhóm còn lại và đưa \(H\) về \(0\). Khác với việc giữ các đường đã gán trong GFF, các bước hoán đổi của SA cho phép xét lại cách bố trí các luồng đang chạy. Chi phí là thời gian tính toán mỗi kỳ và giới hạn của không gian gán core theo đích.
+
+\subsection{Cài luật chuyển tiếp}
+Bộ điều khiển nhận thống kê từ các edge nguồn và gửi luật chuyển tiếp cho những đường cần đổi. Với đường liên pod, luật được gửi đến edge và aggregation ở phía nguồn. Mô hình giả định mỗi bản ghi dài 72 byte, cổng switch có tốc độ 1 Gbit/s, đường nối bộ điều khiển có tốc độ 10 Gbit/s và trễ lan truyền là 10~\(\mu\)s. Mỗi switch có thể nhận xong vào một thời điểm khác nhau. Đường mới có hiệu lực khi tất cả switch liên quan đã nhận xong. Phép đo bao gồm thời gian và lưu lượng điều khiển theo các giả định trên. Chi phí xử lý giao thức và cập nhật bảng chuyển tiếp phần cứng nằm ngoài phạm vi đo.
+
+\subsection{Liên hệ với bài toán luồng trên đồ thị}
+Với luồng \(f\), gọi \(\mathcal P_f\) là tập đường từ nguồn đến đích và đặt \(x_{fp}=1\) nếu chọn đường \(p\). Để đáp ứng toàn bộ nhu cầu, mỗi luồng phải chọn đúng một đường và tổng nhu cầu trên mỗi liên kết phải nằm trong giới hạn dung lượng.
+\begin{align}
+\sum_{p\in\mathcal P_f}x_{fp}&=1 &&\forall f,\\
+\sum_{f}\sum_{\substack{p\in\mathcal P_f\\\ell\in p}}
+ d_f x_{fp}&\le C_\ell &&\forall \ell,\\[-2pt]
+x_{fp}&\in\{0,1\}.
+\end{align}
+Đây là bài toán luồng đa hàng hóa không chia nhỏ. Nếu cho phép \(x_{fp}\in[0,1]\), một luồng có thể chia qua nhiều đường và bài toán trở thành tuyến tính trên tập đường ứng viên. Để biểu diễn hàm mục tiêu~\eqref{eq:energy}, thêm biến \(z_\ell\ge0\) vào vế phải của ràng buộc dung lượng và tối thiểu hóa \(\sum_\ell z_\ell\). Khi đó \(z_\ell\) biểu diễn phần tải vượt dung lượng tại liên kết \(\ell\).
+
+GFF có thể phải kiểm tra \(O(k^2)\) đường cho mỗi luồng, với số chặng cố định trên mỗi đường. Với \(m\) luồng liên pod, gán đường độc lập có tối đa \(((k/2)^2)^m\) tổ hợp. Trong SA theo đích, mỗi bước có thể quét tới \((k/2)^2\) máy để lập nhóm ứng viên, rồi tính mức thay đổi của hàm mục tiêu trên các đường cũ và mới của luồng đến hai đích được đổi core. Biến thể SA theo luồng chỉ đổi một đường mỗi bước và có tập nghiệm rộng hơn. Phần thí nghiệm dùng nghiệm tối ưu của từng biến thể để đo riêng ảnh hưởng của ràng buộc gán đường và sai số tìm kiếm.
+
+\section{Thiết kế thí nghiệm}
+\subsection{Mô phỏng gói tin}
+Thí nghiệm 16 máy gồm bốn mẫu stride \(1,2,4,8\), ánh xạ song ánh ngẫu nhiên và hotspot. Ở cấu hình chính, mỗi liên kết có tốc độ 20 Mbit/s. Mô phỏng chạy 9 giây, lấy số đo từ giây 2 đến giây 8. ECMP băm IP đích, bộ điều khiển đọc thống kê mỗi giây và thời gian chờ truyền lại tối thiểu (RTO) là 200 ms. Hai cấu hình còn lại chạy 60 giây, đo từ giây 10 đến giây 50 và đọc thống kê mỗi 5 giây. Cấu hình 20 Mbit/s chạy cả sáu mẫu, còn cấu hình 1 Gbit/s chỉ chạy stride 8.
+
+Với mỗi mẫu tải và giá trị khởi tạo bộ sinh số ngẫu nhiên (seed), cả bốn phương pháp dùng chung danh sách luồng. Mẫu song ánh có ba seed, còn mỗi mẫu stride hoặc hotspot có một seed. Goodput tổng là tốc độ nhận dữ liệu hữu ích tại mọi đích. Goodput qua lát cắt chỉ tính dữ liệu đi giữa hai nửa mạng có cùng số máy, chia theo thứ tự ID. Lưu lượng giữa các máy cùng một nửa chỉ góp vào goodput tổng. Báo cáo trình bày riêng hai chỉ số để làm rõ cách đối chiếu với thước đo bisection bandwidth trong bài báo gốc.
+
+\subsection{Mô phỏng cấp luồng}
+Mô hình cấp luồng chạy 60 giây với bước mô phỏng 20 ms, chu kỳ lập lịch 1 giây và cửa sổ đo từ giây 10 đến giây 50. Các luồng đến theo quá trình Poisson, kích thước luồng theo phân phối mũ với kỳ vọng 125 MB. Tải đưa vào mạng bằng \(0{,}8\) tổng tốc độ NIC. Mỗi danh sách luồng ghi thời điểm đến, nguồn, đích và kích thước. Mã băm của các tệp đầu vào xác nhận rằng các phương pháp dùng cùng danh sách.
+
+Ở mỗi bước mô phỏng, thứ tự xử lý luồng được xáo ngẫu nhiên. Tốc độ tăng gấp đôi trong pha slow start và tăng thêm 15 MB/s trong pha tránh nghẽn. Luồng giảm tốc độ nếu gặp liên kết bão hòa và chỉ được dùng phần dung lượng còn lại trên đường. Nhật ký mô phỏng xác nhận tải trên từng liên kết nằm trong giới hạn dung lượng. Mô hình xấp xỉ ở cấp luồng lược bỏ ACK, hàng đợi và thời gian chờ truyền lại ở cấp gói.
+
+\widefigure{packet16}{Kết quả ns-3 với 16 máy và liên kết 20 Mbit/s, đo từ giây 2 đến giây 8. Cột biểu diễn giá trị trung bình. Vạch chỉ khoảng từ thấp nhất đến cao nhất qua ba lượt song ánh. Mỗi mẫu stride hoặc hotspot có một lượt cho mỗi phương pháp.}{packet}
+
+\subsection{Đối chứng thuật toán}
+Hai biến thể SA dùng cùng nhu cầu và hàm mục tiêu~\eqref{eq:energy}. Bản theo đích hoán đổi core của hai máy đích, còn bản theo luồng đổi core của một luồng liên pod. Cả hai tính lại hàm mục tiêu từ phần tải thay đổi. Bản theo luồng ghi giá trị tốt nhất, còn bản theo đích dựng thêm các đường đầu ra. Chi phí dựng đường vì thế cũng góp vào chênh lệch thời gian chạy.
+
+Để tìm giá trị tối ưu, phép đối chứng duyệt mọi cách gán đường liên pod trong từng không gian và giữ nguyên các đường nội pod. Hiệu \(H^*_{\text{đích}}-H^*_{\text{luồng}}\) cho biết ràng buộc gán theo đích làm tăng mức quá tải tối ưu bao nhiêu. Sai số tìm kiếm là chênh lệch giữa kết quả SA và giá trị tối ưu tương ứng. Tập kiểm chứng gồm 23 bộ luồng ngẫu nhiên và một phản ví dụ được dựng riêng. Mỗi bộ có 4–8 luồng và được thử với năm seed tìm kiếm ở các mức 10, 100 và 1.000 vòng lặp.
+
+\section{Kết quả}
+\subsection{Mẫu tải và tốc độ liên kết}
+Hình~\ref{fig:packet} so sánh sáu mẫu tải ở 16 máy. Với stride nhỏ, nhiều luồng ở cùng một nửa mạng nên mức chênh lệch giữa các phương pháp có thể khác nhau tùy cách tính goodput. Với hotspot, nhiều máy gửi về cùng một NIC đích, giới hạn mức cải thiện có thể đạt được khi đổi đường.
+
+\begin{table}[!t]
+\caption{Goodput tổng. Cột stride 8 lấy từ lượt ns-3 ở cửa sổ ngắn. Cột 1.024 máy lấy trung bình ba seed của mẫu song ánh trong mô hình cấp luồng.}
+\label{tab:headline}
+\centering
+\begin{tabular}{lrr}
+\toprule
+Phương pháp & Stride 8, 20 Mbit/s & 1.024 máy \\
+ & Mbit/s & Gbit/s \\
+\midrule
+ECMP & \CompactEcmp & \FlowEcmp \\
+GFF & \CompactGff & \FlowGff \\
+SA & \CompactSa & \FlowSa \\
+Nonblocking & \CompactNb & \FlowNb \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ở cấu hình 20 Mbit/s chạy 60 giây, \ExtendedCount/32 lượt đã hoàn tất. Với stride 8, GFF và SA đạt \ExtendedGff{} và \ExtendedSa{} Mbit/s, so với \ExtendedEcmp{} Mbit/s của ECMP. Xu hướng này cũng xuất hiện trong các lượt 9 giây và trong Hình 9 của bài báo gốc~\cite{hedera}. Với hotspot, cả bốn phương pháp đạt khoảng 19 Mbit/s, phù hợp với giới hạn của một NIC đích.
+\IfFileExists{figures/packet16-long.pdf}{\widefigure{packet16-long}{Kết quả với 16 máy và liên kết 20 Mbit/s trong mô phỏng 60 giây, đo từ giây 10 đến giây 50. Cách tính các cột và vạch giống Hình~\ref{fig:packet}.}{packetlong}}{}
+\IfFileExists{figures/gigabit16.pdf}{
+\columnfigure{gigabit16}{Stride 8 ở 1 Gbit/s. Mỗi bậc là trung bình trong 5 giây. Vùng tô đánh dấu cửa sổ đo từ giây 10 đến giây 50. Với mẫu này, toàn bộ dữ liệu đều qua lát cắt.}{gigabit}
+Ở cấu hình 1 Gbit/s, \GigabitCount/4 lượt stride 8 đã hoàn tất.\GigabitRevisionNote{} ECMP đạt \GigabitEcmp{} Mbit/s, GFF đạt \GigabitGff{} Mbit/s và SA đạt \GigabitSa{} Mbit/s. Chỉ SA vượt ECMP. Sau giai đoạn truyền ban đầu, goodput của cấu hình tham chiếu giảm còn \GigabitNb{} Mbit/s trong cửa sổ đo (Hình~\ref{fig:gigabit}). Mức thấp này chịu ảnh hưởng của TCP nên phép so sánh dùng goodput tuyệt đối của từng phương pháp.
+
+Lượt 60 giây có ghi nhật ký cho kết quả khớp với lượt tham chiếu ban đầu. Cửa sổ nghẽn bằng kích thước một đoạn TCP tối đa (MSS) ở \TcpOneMss\% trong 128 mẫu từ giây 10 đến giây 50. Trong khoảng này, các máy gửi chuyển vào trạng thái \texttt{CA\_LOSS} tổng cộng \TcpLossEvents{} lần, còn hàng đợi ghi nhận \TcpQueueDrops{} lần loại gói.
+}{}
+\IfFileExists{figures/gigabit-bijection.pdf}{\columnfigure{gigabit-bijection}{Goodput tổng ở 16 máy với tải song ánh và liên kết 1 Gbit/s. Mỗi đường nối bốn kết quả chạy trên cùng một ánh xạ nguồn--đích. Cửa sổ đo từ 0,8 đến 2,8 giây.}{gigabit-bijection}}{}
+\IfFileExists{figures/gigabit-tcp.pdf}{
+\widefigure{gigabit-tcp}{Đối chứng TCP trên switch tham chiếu với stride 8 ở 1 Gbit/s. Bên trái là goodput theo thời gian, với cửa sổ đo từ 1,2 đến 2,4 giây. Bên phải là tỷ lệ mẫu trong cửa sổ đo có cửa sổ nghẽn bằng một MSS.}{gigabittcp}
+Hình~\ref{fig:gigabittcp} theo dõi giai đoạn đầu của bốn lượt 2,5 giây có cùng ánh xạ luồng và lịch mở kết nối. Cấu hình ban đầu đạt \TcpDefault{} Gbit/s. Ba lượt còn lại chỉ đổi một tham số TCP mỗi lượt. Goodput đạt \TcpAckFive{} Gbit/s khi đặt độ trễ ACK là 5 ms, \TcpAckOne{} Gbit/s khi gửi ACK cho mỗi gói và \TcpRtoThree{} Gbit/s khi tăng RTO tối thiểu lên 300 ms. Phép thử cho thấy kết quả trên switch tham chiếu ở một seed nhạy với cấu hình TCP ngay khi lưu lượng bắt đầu suy giảm. Thứ hạng của các thuật toán với stride 8 đến từ các lượt 60 giây.
+}{}
+
+\IfFileExists{figures/gigabit-bijection.pdf}{
+\subsection{Tải song ánh ở 1 Gbit/s qua ba seed}
+Ở thí nghiệm này, mỗi seed tạo một ánh xạ song ánh ngẫu nhiên. Bốn phương pháp dùng chung danh sách luồng trong từng seed. Mỗi lượt chạy 3 giây, với ACK cho mỗi gói, RTO tối thiểu 200 ms và chu kỳ đọc thống kê 250 ms. Các thiết lập TCP giống nhau giữa bốn phương pháp.
+
+Goodput trung bình của ECMP, GFF, SA và cấu hình nonblocking lần lượt là \BijectionEcmpMean, \BijectionGffMean, \BijectionSaMean{} và \BijectionNbMean{} Gbit/s. So với ECMP cùng seed, GFF vượt ở \BijectionGffWins/3 lượt, với mức chênh lệch tương đối trung bình \BijectionGffGain\% và khoảng quan sát từ \BijectionGffLow\% đến \BijectionGffHigh\%. SA vượt ở \BijectionSaWins/3 lượt, với mức chênh lệch trung bình \BijectionSaGain\% và khoảng quan sát từ \BijectionSaLow\% đến \BijectionSaHigh\%. Hình~\ref{fig:gigabit-bijection} giữ riêng kết quả của từng seed. Các khoảng trên mô tả ba ánh xạ đã thử ở cửa sổ ngắn.
+}{}
+
+\widefigure{flow1024}{Tải song ánh ở 1.024 máy. Mỗi điểm là trung bình của ba seed trong một giây. Vùng tô đánh dấu khoảng thời gian dùng để tổng hợp kết quả. Đối chiếu với Hình 11 của Hedera~\cite{hedera}.}{flowmid}
+\widefigure{flow8192}{Tám mẫu tải ở 8.192 máy, chọn theo Hình 10 của Hedera~\cite{hedera}. Với mỗi mẫu, các thuật toán dùng chung một seed.}{flowlarge}
+
+\subsection{Quy mô lớn và chất lượng tìm kiếm}
+Bảng~\ref{tab:headline} và Hình~\ref{fig:flowmid} cho thấy GFF và SA đều vượt ECMP ở 1.024 máy với tải song ánh. Xu hướng này cũng xuất hiện trong Hình 11 của Hedera~\cite{hedera}. Trong mô phỏng này, GFF đạt goodput cao hơn SA. Ở 8.192 máy, khi mỗi luồng chỉ truyền giữa hai máy cùng edge, các phương pháp đạt cùng goodput tổng (Hình~\ref{fig:flowlarge}). Với tải song ánh và tải có đích ngẫu nhiên, GFF và SA đều cải thiện cả goodput tổng lẫn goodput qua lát cắt so với ECMP.
+
+\columnfigure{budget}{SA ở 1.024 máy với đích ngẫu nhiên. Mỗi điểm là trung bình của hai seed. Hai cách khởi tạo dùng cùng danh sách luồng.}{budget}
+
+Theo cách khảo sát số vòng lặp ở Bảng 3 của Hedera~\cite{hedera}, Hình~\ref{fig:budget} so sánh việc dùng lại nghiệm kỳ trước với việc khởi tạo lại. Hai cách dùng cùng số vòng lặp mỗi kỳ. Ở 100 vòng, dùng lại nghiệm đạt \SweepWarm{} Gbit/s, còn khởi tạo lại đạt \SweepCold{} Gbit/s. Chênh lệch thu hẹp ở 10.000 vòng trên hai seed đã đo.
+
+\widefigure{oracle}{Chênh lệch giữa kết quả SA và giá trị tối ưu của từng biến thể, cùng tỷ lệ tìm được nghiệm tối ưu. Mỗi điểm tổng hợp kết quả của 24 bộ luồng và năm seed.}{oracle}
+
+Ràng buộc gán core theo đích làm tăng \(H^*\) ở \RestrictionCases/24 bộ luồng, với mức tăng lớn nhất là \RestrictionGap. Trong Hình~\ref{fig:restriction}, mỗi cạnh nối hai đích phải dùng aggregation khác nhau để tránh quá tải. Tam giác cần ba màu, nhưng pod chỉ có hai nhóm aggregation. Gán theo luồng cho phép hai luồng đến máy 10 đi qua hai aggregation khác nhau. Sau 1.000 vòng, SA theo đích tìm được nghiệm tối ưu của biến thể này trong \SolvedDst/120 lượt, còn SA theo luồng đạt nghiệm tối ưu tương ứng trong \SolvedFlow/120 lượt.
+\columnfigure{restriction-fixture}{Đồ thị xung đột trong phản ví dụ với \(k=4\). Nhãn trên mỗi cạnh là tải trên liên kết dung lượng 1 nếu hai đích cùng chọn một nhóm aggregation. Hai luồng đến máy 10 xuất phát từ hai edge khác nhau.}{restriction}
+
+
+\columnfigure{variants}{Tỷ số giữa trung vị thời gian chạy của SA theo luồng và SA theo đích. Hai biến thể dùng cùng bộ luồng và số vòng lặp.}{variants}
+\widefigure{runtime}{Thời gian chạy của bản C++ so với Bảng 4 và 5 của Hedera~\cite{hedera}. Đường liền nối các trung vị đo trên WSL, mỗi trung vị lấy từ năm bộ luồng. Đường đứt biểu diễn số liệu công bố trong bài báo gốc. Trục tung dùng thang logarit.}{runtime}
+\widefigure{control}{Bên trái là thời gian từ lúc phát hiện đến lần cài đường đầu tiên của nhóm luồng đến dồn dập, đo trên ns-3 với hai seed. Bên phải là dự báo khi mỗi luồng lớn cần một bản ghi và hai luật chuyển tiếp. Đường đứt biểu diễn số liệu ở Bảng 6 của Hedera~\cite{hedera}.}{control}
+\widefigure{outage}{Liên kết giữa aggregation và core bị ngắt ở giây 2. Đường liền biểu diễn lượt có sự cố, đường đứt biểu diễn lượt mạng hoạt động bình thường với cùng seed. Mỗi đường là trung bình của hai seed.}{outage}
+\widefigure{shuffle}{Tỷ lệ máy hoàn thành cả 15 lượt gửi tuần tự. Mỗi đường gộp hai seed, với mẫu số là 32 máy. Nếu đường chưa đạt 1 ở cuối thời gian đo, vẫn còn máy chưa gửi xong.}{shuffle}
+
+\subsection{Chi phí tính toán}
+Hình~\ref{fig:runtime} dùng cùng các cặp số máy và số luồng như Bảng 4 và 5 của Hedera~\cite{hedera}. Phép đo bỏ qua thời gian tạo cấu trúc mạng và sinh các cặp nguồn--đích. Bộ ước lượng nhu cầu được đo riêng, có ghi số vòng đến khi hội tụ và kiểm tra giới hạn dung lượng NIC. Với 50.000 luồng và 10.000 vòng lặp, trung vị của SA theo đích là \RuntimeSaLarge{} ms, còn số liệu công bố là 55,741 ms. Hai phép đo khác nhau về phần cứng, bản triển khai và mẫu đầu vào. Bản C++ được biên dịch ở chế độ Release và chạy trên một CPU logic qua WSL, với Intel Core i5-13420H. Các mô phỏng khác có thể chạy đồng thời. Bộ ước lượng trong bài báo gốc dùng bốn luồng xử lý.
+
+
+\subsection{Kích hoạt và chi phí điều khiển}
+Bộ điều khiển trong ns-3 đọc thống kê ở edge mỗi 100 ms. GFF theo sự kiện chạy khi tập luồng lớn thay đổi, còn GFF và SA định kỳ tính đường mỗi giây. Với nhóm luồng đến dồn dập, trung vị từ lúc phát hiện đến lần áp dụng kế hoạch đầu tiên lần lượt là \EventGff, \PeriodicGff{} và \PeriodicSa{} ms. Tệp CSV ghi thêm đường đi có đổi tại mốc này hay không. Cả ba cấu hình đều giả định thời gian tính toán 100 ms. Chênh lệch đo được chủ yếu đến từ thời gian chờ kỳ lập lịch kế tiếp.
+
+Phần dự báo trong Hình~\ref{fig:control} giả định thời gian tính toán 100 ms, các luồng phân bố đều và mỗi luồng cần hai luật chuyển tiếp. Trong ns-3, mô hình ghi nhận các đợt cài luật khi đường thực sự đổi, nên một đợt có thể dùng ít luật hơn dự báo.
+
+
+\subsection{Phục hồi sau lỗi liên kết}
+Tại giây 2, mô hình loại bỏ mọi gói đi qua một liên kết giữa aggregation và core theo cả hai hướng. Bộ điều khiển nhận thông báo sau 50 ms và cấp đường dự phòng cho các luồng bị ảnh hưởng. Mô hình kiểm tra những kế hoạch đến muộn dựa trên trạng thái mạng sau sự cố. GFF giải phóng phần dung lượng đã dành trên các đường qua liên kết hỏng ở kỳ lập lịch tiếp theo. Trong hàm mục tiêu của SA, liên kết hỏng có dung lượng 0. Nếu SA vẫn đề xuất đường qua liên kết này, bộ điều khiển dùng đường dự phòng.
+
+Hình~\ref{fig:outage} đối chiếu mỗi lượt có sự cố với một lượt mạng hoạt động bình thường có cùng seed. Một lượt được xem là phục hồi khi goodput đạt ít nhất \(90\%\) mức trước sự cố trong ba cửa sổ 100 ms liên tiếp. Có \RecoveryCount/\RecoveryTotal{} lượt đạt tiêu chí, cả hai đều là ECMP. Sau sự cố, GFF và SA vẫn đạt goodput cao hơn ECMP dù chưa trở về mức trước sự cố của chính chúng. Độ trễ thông báo 50 ms là tham số cấu hình.
+
+
+\subsection{Shuffle tuần tự}
+Mỗi máy gửi lần lượt đến 15 đích theo thứ tự ngẫu nhiên. Kết nối tiếp theo chỉ mở khi đích hiện tại đã nhận đủ dữ liệu. Bảng 2 của Hedera dùng 500 MB cho mỗi cặp máy~\cite{hedera}. Cấu hình ns-3 dùng 1 MiB mỗi cặp và dừng nguồn ở giây 30. Khi tính tỷ lệ hoàn thành, mẫu số bao gồm cả những máy chưa gửi xong trong thời gian quan sát.
+
+Ở cấu hình đối chứng, mỗi cặp máy gửi 256 KiB, gửi ACK cho mỗi gói, dùng hàng đợi 512 gói và dừng nguồn ở giây 20. Tất cả máy đều gửi xong. GFF và SA mất nhiều thời gian hơn ECMP, trong khi bài báo gốc ghi nhận chiều ngược lại ở mức 500 MB mỗi cặp (Bảng~\ref{tab:shuffle}). Hình~\ref{fig:shuffle} trình bày tiến độ của cả hai cấu hình ns-3. Với các lượt đã hoàn thành, tệp \texttt{shuffle-table2.csv} ghi thêm thời gian hoàn thành trung bình, goodput mỗi máy và lượng dữ liệu qua lát cắt.
+
+\begin{table}[!t]
+\caption{Thời gian hoàn thành shuffle ở 256 KiB mỗi cặp trong ns-3 và ở 500 MB mỗi cặp trong Bảng 2 của Hedera~\cite{hedera}.}
+\label{tab:shuffle}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+ & Máy hoàn thành & ns-3 (s) & Hedera (s) \\
+\midrule
+ECMP & \ShuffleHostsEcmp/32 & \ShuffleEcmp & 438,44\\
+GFF & \ShuffleHostsGff/32 & \ShuffleGff & 335,50\\
+SA & \ShuffleHostsSa/32 & \ShuffleSa & 335,96\\
+Nonblocking & \ShuffleHostsNb/32 & \ShuffleNb & 306,37\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Giới hạn và khả năng tái lập}
+Kết quả cấp gói phụ thuộc vào TCP NewReno và hàng đợi của ns-3. Ở cấp luồng, số đo phụ thuộc vào bước mô phỏng và cách sinh tải. Mô hình điều khiển dùng giả định đơn giản về thời gian truyền và cài luật. Thí nghiệm lỗi chỉ xét một liên kết và bộ điều khiển nhận thông báo sau một khoảng thời gian đặt trước. Đánh giá toàn bộ giao thức PortLand hoặc sự cố đồng thời trên nhiều liên kết cần một thiết kế thí nghiệm khác.
+
+Thí nghiệm ở 8.192 máy và đa số mẫu ở 16 máy chỉ dùng một seed. \IfFileExists{figures/gigabit-bijection.pdf}{Đối chứng song ánh ở 1 Gbit/s dùng ba seed trong một cửa sổ ngắn. Mức dao động giữa các seed phản ánh các ánh xạ đã thử. }{}Số đo thời gian chạy đến từ các bộ luồng tổng hợp trên phần cứng đã nêu. Thư mục \texttt{data/} chứa CSV dùng để dựng hình và bảng. Tệp mô tả từng đợt chạy ghi phiên bản mã nguồn, cấu hình và mã băm của tệp thực thi mô hình cấp luồng. Hình, bảng và giá trị LaTeX đều được tạo từ cùng dữ liệu đo.
+
+Các phép kiểm tra tự động xác nhận thứ tự kích hoạt kế hoạch, thứ tự gửi của từng máy trong shuffle, đường đi sau sự cố và giới hạn dung lượng ở mỗi bước mô phỏng cấp luồng. Kiểm tra hồi quy đối chiếu mẫu tải, luồng, đường đi và goodput ở ba lượt chạy với phiên bản trước. Hai bộ kiểm thử C++ kiểm tra cấu trúc mạng, bộ ước lượng, bộ lập lịch và các bước xử lý kế hoạch cài đường.
+
+\section{Kết luận}
+Ở 20 Mbit/s với mẫu stride 8, cả GFF và SA đạt goodput cao hơn ECMP. Trong cấu hình stride 8 ở 1 Gbit/s chạy 60 giây, chỉ SA vượt ECMP. \IfFileExists{figures/gigabit-bijection.pdf}{Ở phép thử song ánh ngắn tại 1 Gbit/s, cả hai đều vượt ECMP trên ba seed và thứ hạng giữa GFF với SA thay đổi theo seed. }{}Ở giai đoạn đầu, goodput của switch tham chiếu thay đổi mạnh khi điều chỉnh cách gửi ACK hoặc thời gian chờ truyền lại. Phép duyệt chính xác cho thấy gán core theo đích có thể loại bỏ một cách bố trí tốt hơn, ngay cả khi SA đã tìm được nghiệm tối ưu trong không gian của nó. Sau lỗi liên kết, goodput của GFF và SA vẫn thấp hơn mức trước sự cố dù đã cài đường dự phòng.
+
+\begin{thebibliography}{9}
+\bibitem{fattree}
+M.~Al-Fares, A.~Loukissas và A.~Vahdat,
+\emph{A Scalable, Commodity Data Center Network Architecture}.
+ACM SIGCOMM, tr.~63--74, 2008.
+\href{https://doi.org/10.1145/1402958.1402967}{Bài báo của ACM}.
+\bibitem{hedera}
+M.~Al-Fares, S.~Radhakrishnan, B.~Raghavan, N.~Huang và A.~Vahdat,
+\emph{Hedera: Dynamic Flow Scheduling for Data Center Networks}.
+USENIX NSDI, 2010.
+\href{https://www.usenix.org/legacy/event/nsdi10/tech/full_papers/al-fares.pdf}{Bản toàn văn của USENIX}.
+\bibitem{ns3}
+Nhóm phát triển ns-3,
+\emph{ns-3.47}.
+2026.
+\href{https://www.nsnam.org/releases/ns-3-47/}{Bản phát hành và tài liệu}.
+\end{thebibliography}
+\end{document}

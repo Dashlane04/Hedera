@@ -1,0 +1,17 @@
+time,flow_id,event,cohort
+0.20000000000000001,0,source_start,background
+6,0,source_stop,background
+0.20000000000000001,1,source_start,background
+6,1,source_stop,background
+0.20000000000000001,2,source_start,background
+6,2,source_stop,background
+0.20000000000000001,3,source_start,background
+6,3,source_stop,background
+2,4,source_start,burst
+4,4,source_stop,burst
+2,5,source_start,burst
+4,5,source_stop,burst
+2,6,source_start,burst
+4,6,source_stop,burst
+2,7,source_start,burst
+4,7,source_stop,burst

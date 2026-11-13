@@ -1,0 +1,30 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+  \foreach \offset/\name/\subtitle in {0/ECMP/Băm trùng đường,8.1/GFF/Chọn đường đủ chỗ} {
+    \begin{scope}[xshift=\offset cm]
+      \node[anchor=west,font=\small\bfseries] at (0,3.02) {\name};
+      \node[anchor=west] at (0,2.60) {\subtitle};
+      \foreach \y/\core in {1.88/0,1.04/2} {
+        \node[anchor=east] at (1.15,\y) {qua \(C_{\core}\)};
+        \draw[fill=black!5,draw=black!28] (1.30,{\y-.21}) rectangle (4.0,{\y+.21});
+      }
+    \end{scope}
+  }
+  \fill[hedblue] (1.30,1.67) rectangle (3.19,2.09);
+  \fill[hedrust] (3.19,1.67) rectangle (5.08,2.09);
+  \fill[hedblue] (9.40,1.67) rectangle (11.29,2.09);
+  \fill[hedrust] (9.40,.83) rectangle (11.29,1.25);
+  \foreach \offset in {0,8.1} {
+    \begin{scope}[xshift=\offset cm]
+      \draw[black!75,densely dashed,line width=.55pt] (4.0,.70) -- (4.0,2.24);
+      \node at (4.0,.48) {\(C_\ell=1\)};
+    \end{scope}
+  }
+  \node[anchor=west] at (5.17,1.88) {\(1{,}4\)};
+  \node[anchor=west] at (1.31,1.04) {\(0\)};
+  \node[anchor=west] at (11.38,1.88) {\(0{,}7\)};
+  \node[anchor=west] at (11.38,1.04) {\(0{,}7\)};
+  \fill[hedblue] (3.40,-.22) rectangle ++(.28,.22)
+    node[anchor=west, yshift=-3.1pt] {\(f_1: h_0\to h_8\)};
+  \fill[hedrust] (7.55,-.22) rectangle ++(.28,.22)
+    node[anchor=west, yshift=-3.1pt] {\(f_2: h_1\to h_9\)};
+\end{tikzpicture}

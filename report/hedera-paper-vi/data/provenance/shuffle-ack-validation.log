@@ -1,0 +1,9 @@
+PASS sequential-shuffle-ack1-s1-ecmp: 240/240 complete, 0 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s1-gff: 240/240 complete, 161 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s1-nonblocking: 240/240 complete, 0 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s1-sa: 240/240 complete, 222 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s2-ecmp: 240/240 complete, 0 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s2-gff: 240/240 complete, 158 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s2-nonblocking: 240/240 complete, 0 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-ack1-s2-sa: 240/240 complete, 240 reroutes, 0 zero-payload censored
+Validated 8 scenarios.

@@ -1,0 +1,4 @@
+time,large_flows,demand_rounds,estimate_us,placement_us,initial_energy,best_energy,accepted
+0.3,4,2,4.102,66.445,0,0,0
+2.1,8,2,6.733,35.047,16,0,0
+5.8,4,2,3.509,15.728,0,0,0

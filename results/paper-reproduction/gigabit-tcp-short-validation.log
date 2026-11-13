@@ -1,0 +1,5 @@
+PASS gigabit-ack1-s1-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-ack5-s1-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-default-s1-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-rto300-s1-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+Validated 4 scenarios.

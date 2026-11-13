@@ -1,0 +1,62 @@
+{
+  "suite": "paper-shuffle-ack",
+  "plan": [
+    {
+      "name": "sequential-shuffle-ack1",
+      "options": {
+        "k": 4,
+        "rate": "20Mbps",
+        "hashMode": "flow",
+        "hashMix": "avalanche",
+        "duration": 20,
+        "drain": 1,
+        "measureStart": 0.8,
+        "measureEnd": 19,
+        "interval": 0.1,
+        "threshold": 0.1,
+        "iterations": 1000,
+        "checkEnergy": 0,
+        "workload": "shuffle",
+        "trafficMode": "finite",
+        "flowBytes": 262144,
+        "minRtoMs": 200,
+        "delAckCount": 1,
+        "queuePackets": 512
+      },
+      "seeds": [
+        1,
+        2
+      ],
+      "algorithms": [
+        "ecmp",
+        "gff",
+        "sa",
+        "nonblocking"
+      ]
+    }
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "f920630529b00975ce9baaa6fc40cd83cae4a9851c6c203f7985c05ae95fbd87",
+    "hedera-control-plane.cc": "694cb0536502b99e39f396404635570c6ad042ce6e02fa8ac20d485b00503b3a",
+    "hedera-controller.cc": "032df9eee61c992a96358fd29296873fe662acc9d3fce36b536b9cadf6486200",
+    "hedera-controller.h": "ccbfb9e36994e19e9cb30074672d79fb7d0d63a39af0263f94069b495f3cd439",
+    "hedera-core.cc": "bbfbec7ecbd8e578cf86277cebf04d2b9302d2578dee841f7c868e489280069b",
+    "hedera-core.h": "b752171309d30ffd62130b2bc81329af85660ac21c84aa5864866c2a03c55bb1",
+    "hedera-data-plane.cc": "4816464fd3a9def33f722f04bf4dcba65ae80f3a69f855ba0ded51c3b3ba9051",
+    "hedera-monitoring.cc": "31d61d1a8dfed8236be9e23ae3b3bf38b75a853511d0683046adf53821d1c66b",
+    "hedera-monitoring.h": "0f2ff0102b723eaf9dad9c9759a219f297387298ea34256784a100049f0dba0e",
+    "hedera-network.cc": "15ab966d1a77a8af52c02d095221dbf47a609d2ab95bfb5a9ec080cf981c969d",
+    "hedera-network.h": "8ae6f4faf1348064555427572c72a23f2706148dcae4e02f0f9246e933ce05fd",
+    "hedera-oracle.cc": "e3d10fc866f120c8c7c2de2a3c5807892d98f8e16dd0a154874a954eace3e355",
+    "hedera-oracle.h": "fc3a3b44e2530f635399e79ca2f35541f8bfdc2850c714712b3f517afb1c9a56",
+    "hedera-sim.cc": "3af3ddd2ce55b8c71e01cf9f416efd5391b1afda07b1a94b0eefedca34b2048a",
+    "hedera-telemetry.cc": "679d5d09d5860701079b98825c14f40d22c320f294c1232b0486c5d3419134be",
+    "hedera-utils.h": "4a3b04172384b9bccdba6b6a1302ac2fcc44948b6ff829753284d53c2a500a07",
+    "hedera-workload.cc": "1b561b0061f139e480688d7ddc49084ccf53bb935940da01238ab5291a97ea7f"
+  },
+  "ns3_revision": "e2c9e30c6ebdfd534aa7e30f6324b5674d138b9f",
+  "error_bars": "bootstrap percentile CI, exploratory for small n",
+  "concurrency": 1,
+  "reference": "single-switch; same NIC/queue/TCP and matched unloaded propagation+serialization",
+  "scenario": "hedera-paper-sim"
+}

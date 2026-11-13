@@ -1,0 +1,3 @@
+time,event,from,to,affected_flows
+2,outage,24,32,0
+2.05,routing_notified,24,32,4

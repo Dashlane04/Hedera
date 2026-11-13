@@ -1,0 +1,27 @@
+PASS gff-on-detection-s1-gff: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS gff-on-detection-s2-gff: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS healthy-s1-ecmp: 8 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS healthy-s1-gff: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS healthy-s1-sa: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS healthy-s2-ecmp: 8 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS healthy-s2-gff: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS healthy-s2-sa: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS outage-s1-ecmp: 8 persistent (FCT N/A), 4 reroutes, 0 zero-payload censored
+PASS outage-s1-gff: 8 persistent (FCT N/A), 7 reroutes, 0 zero-payload censored
+PASS outage-s1-sa: 8 persistent (FCT N/A), 7 reroutes, 0 zero-payload censored
+PASS outage-s2-ecmp: 8 persistent (FCT N/A), 4 reroutes, 0 zero-payload censored
+PASS outage-s2-gff: 8 persistent (FCT N/A), 7 reroutes, 0 zero-payload censored
+PASS outage-s2-sa: 8 persistent (FCT N/A), 7 reroutes, 0 zero-payload censored
+PASS periodic-s1-gff: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS periodic-s1-sa: 8 persistent (FCT N/A), 10 reroutes, 0 zero-payload censored
+PASS periodic-s2-gff: 8 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS periodic-s2-sa: 8 persistent (FCT N/A), 10 reroutes, 0 zero-payload censored
+PASS sequential-shuffle-s1-ecmp: 138/240 complete, 0 reroutes, 92 zero-payload censored
+PASS sequential-shuffle-s1-gff: 209/240 complete, 147 reroutes, 26 zero-payload censored
+PASS sequential-shuffle-s1-nonblocking: 178/240 complete, 0 reroutes, 57 zero-payload censored
+PASS sequential-shuffle-s1-sa: 176/240 complete, 470 reroutes, 56 zero-payload censored
+PASS sequential-shuffle-s2-ecmp: 167/240 complete, 0 reroutes, 66 zero-payload censored
+PASS sequential-shuffle-s2-gff: 174/240 complete, 120 reroutes, 57 zero-payload censored
+PASS sequential-shuffle-s2-nonblocking: 148/240 complete, 0 reroutes, 84 zero-payload censored
+PASS sequential-shuffle-s2-sa: 163/240 complete, 532 reroutes, 70 zero-payload censored
+Validated 26 scenarios.

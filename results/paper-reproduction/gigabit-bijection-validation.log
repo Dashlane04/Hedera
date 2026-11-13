@@ -1,0 +1,13 @@
+PASS gigabit-bijection-s1-ecmp: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s1-gff: 16 persistent (FCT N/A), 11 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s1-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s1-sa: 16 persistent (FCT N/A), 17 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s2-ecmp: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s2-gff: 16 persistent (FCT N/A), 7 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s2-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s2-sa: 16 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s3-ecmp: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s3-gff: 16 persistent (FCT N/A), 9 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s3-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS gigabit-bijection-s3-sa: 16 persistent (FCT N/A), 19 reroutes, 0 zero-payload censored
+Validated 12 scenarios.

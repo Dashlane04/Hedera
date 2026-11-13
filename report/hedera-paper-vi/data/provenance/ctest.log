@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /opt/hedera-experiments/hedera-core-build
+Test project /opt/hedera-experiments/hedera-core-build
+    Start 1: core-tests
+1/2 Test #1: core-tests .......................   Passed    0.02 sec
+    Start 2: controller-tests
+2/2 Test #2: controller-tests .................   Passed    0.02 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.05 sec

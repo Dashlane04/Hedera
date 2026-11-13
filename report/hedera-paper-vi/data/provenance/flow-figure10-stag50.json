@@ -1,0 +1,52 @@
+{
+  "plan": [
+    [
+      32,
+      "stag50pod0",
+      "ecmp",
+      1,
+      1000,
+      1
+    ],
+    [
+      32,
+      "stag50pod0",
+      "gff",
+      1,
+      1000,
+      1
+    ],
+    [
+      32,
+      "stag50pod0",
+      "sa",
+      1,
+      1000,
+      1
+    ],
+    [
+      32,
+      "stag50pod0",
+      "nonblocking",
+      1,
+      1000,
+      1
+    ]
+  ],
+  "source_sha256": {
+    "tests/paper-flow-study.cc": "f4f67d3e521429767d4b7061685a0b60c21ae7e92e3ca3553ea3f9a75572cd11",
+    "sim/hedera-core.cc": "bbfbec7ecbd8e578cf86277cebf04d2b9302d2578dee841f7c868e489280069b",
+    "scripts/run-paper-flow.py": "d21b3d4332a6bb9270ba7f4c921d1f2c979564ea6ff9b843872a2f059c77a92f"
+  },
+  "binary_sha256": "fc7e0ed871619f873463f31e9a2d55706d2eee705ead98f9bfb8f6dc74e66ff9",
+  "nic_gbps": 1,
+  "tick_s": 0.02,
+  "schedule_s": 1,
+  "duration_s": 60,
+  "window_s": [
+    10,
+    50
+  ],
+  "offered_load": 0.8,
+  "mean_bytes": 125000000
+}

@@ -1,0 +1,22 @@
+{
+  "packet_profiles": {
+    "compact": 32,
+    "extended": 32,
+    "gigabit": 4
+  },
+  "tcp_cases": [
+    "gigabit-reference",
+    "gigabit-default",
+    "gigabit-ack5",
+    "gigabit-ack1",
+    "gigabit-rto300"
+  ],
+  "gigabit_bijection_runs": 12,
+  "mechanisms": 26,
+  "shuffle_ack": 8,
+  "flow_cases": 60,
+  "flow_cases_for_figures": 56,
+  "estimator_timings": 40,
+  "sa_timings": 120,
+  "sa_oracle_comparisons": 720
+}

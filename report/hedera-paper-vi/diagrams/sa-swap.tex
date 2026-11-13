@@ -1,0 +1,40 @@
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  endpoint/.style={draw=black!55,fill=white,minimum width=9mm,minimum height=4.6mm,inner sep=1pt}]
+  \foreach \offset/\panel/\cost/\summary in {
+      0/Trước hoán đổi/{0{,}8}/Cùng nhóm aggregation,
+      9.9/Sau hoán đổi/0/Khác nhóm aggregation} {
+    \begin{scope}[xshift=\offset cm]
+      \node[font=\small\bfseries] at (2.25,3.68) {\panel};
+      \node at (.63,3.19) {Đích trong pod 2};
+      \node at (3.78,3.19) {Core được gán};
+      \foreach \i in {0,...,3} {
+        \pgfmathtruncatemacro{\id}{8+\i}
+        \coordinate (h\i) at (.63,{2.66-.60*\i});
+        \coordinate (c\i) at (3.78,{2.66-.60*\i});
+      }
+      \draw[hedblue,line width=1pt] (h0) -- (c0);
+      \draw[black!42,dashed] (h3) -- (c3);
+      \ifdim\offset pt=0pt
+        \draw[hedrust,line width=1pt] (h1) -- (c1);
+        \draw[black!42,dashed] (h2) -- (c2);
+      \else
+        \draw[black!42,dashed] (h2) -- (c1);
+        \draw[hedrust,line width=1pt] (h1) -- (c2);
+      \fi
+      \foreach \i in {0,...,3} {
+        \pgfmathtruncatemacro{\id}{8+\i}
+        \node[endpoint] at (h\i) {$h_{\id}$};
+        \node[endpoint] at (c\i) {$C_{\i}$};
+      }
+      \foreach \y/\i in {2.36/0,1.16/1} {
+        \draw[black!55] (4.36,{\y+.30}) -- (4.50,{\y+.30})
+                        -- (4.50,{\y-.30}) -- (4.36,{\y-.30});
+        \node[anchor=west,inner sep=2pt] at (4.52,\y) {$A_{\i}$};
+      }
+      \node at (2.25,.28) {\summary{} \(\bigl(H=\cost\bigr)\)};
+    \end{scope}
+  }
+  \draw[-{Stealth[length=2.5mm]},black!75,line width=.75pt] (6.20,1.76) -- (9.05,1.76);
+  \node[align=center] at (7.63,2.28) {Đổi core của\\\(h_9\) và \(h_{10}\)};
+\end{tikzpicture}

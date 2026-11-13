@@ -1,0 +1,4 @@
+phase_id,name,start,end
+0,baseline,0.2,2
+1,burst,2,4
+2,recovery,4,6

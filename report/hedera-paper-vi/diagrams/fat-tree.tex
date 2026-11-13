@@ -1,0 +1,49 @@
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  switch/.style={draw=black!65, fill=white, minimum width=8mm, minimum height=4.8mm, inner sep=1pt},
+  host/.style={draw=black!45, fill=white, minimum width=6.4mm, minimum height=4.2mm, inner sep=1pt},
+  fabric/.style={draw=black!36, line width=.35pt}]
+  \coordinate (c0) at (6.45,4);
+  \coordinate (c1) at (7.65,4);
+  \coordinate (c2) at (10.15,4);
+  \coordinate (c3) at (11.35,4);
+  \foreach \p in {0,...,3} {
+    \pgfmathsetmacro{\leftedge}{2.0+3.75*\p}
+    \pgfmathsetmacro{\rightedge}{\leftedge+3.45}
+    \pgfmathsetmacro{\middle}{\leftedge+1.725}
+    \filldraw[fill=black!3,draw=black!25,line width=.35pt]
+      (\leftedge,-.45) rectangle (\rightedge,2.93);
+    \node at (\middle,-.20) {Pod \p};
+    \coordinate (a\p-0) at ({\leftedge+.90},2.56);
+    \coordinate (a\p-1) at ({\leftedge+2.55},2.56);
+    \coordinate (e\p-0) at ({\leftedge+.90},1.55);
+    \coordinate (e\p-1) at ({\leftedge+2.55},1.55);
+    \foreach \i in {0,1} {
+      \foreach \j in {0,1} {\draw[fabric] (e\p-\i) -- (a\p-\j);}
+    }
+    \foreach \i in {0,...,3} {
+      \pgfmathtruncatemacro{\id}{4*\p+\i}
+      \pgfmathtruncatemacro{\edgeindex}{int(\i/2)}
+      \coordinate (h\id) at ({\leftedge+.49+.825*\i},.48);
+      \draw[fabric] (e\p-\edgeindex) -- (h\id);
+    }
+    \draw[fabric] (a\p-0) -- (c0) (a\p-0) -- (c1);
+    \draw[fabric] (a\p-1) -- (c2) (a\p-1) -- (c3);
+  }
+  \draw[hedblue,line width=1.2pt] (e0-0) -- (a0-0) -- (c0) -- (a2-0) -- (e2-0);
+  \draw[hedrust,densely dashed,line width=1.2pt] (e0-0) -- (a0-1) -- (c2) -- (a2-1) -- (e2-0);
+  \foreach \p in {0,...,3} {
+    \foreach \i in {0,1} {
+      \node[switch] at (a\p-\i) {$A_{\i}$};
+      \node[switch] at (e\p-\i) {$E_{\i}$};
+    }
+  }
+  \foreach \i in {0,...,3} {\node[switch] at (c\i) {$C_{\i}$};}
+  \foreach \i in {0,...,15} {\node[host] at (h\i) {$h_{\i}$};}
+  \foreach \y/\labeltext in {4/Core,2.56/Aggregation,1.55/Edge,.48/Host}
+    {\node[anchor=west,inner sep=0pt] at (0,\y) {\labeltext};}
+  \draw[hedblue,line width=1.2pt] (4.15,-.85) -- ++(.62,0)
+    node[right,black] {qua \(C_0\)};
+  \draw[hedrust,densely dashed,line width=1.2pt] (9.6,-.85) -- ++(.62,0)
+    node[right,black] {qua \(C_2\)};
+\end{tikzpicture}

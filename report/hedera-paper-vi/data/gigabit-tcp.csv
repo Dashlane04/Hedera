@@ -1,0 +1,6 @@
+case,seed,algorithm,goodput_gbps,window_start,window_end,tcp_sample_count,median_cwnd_bytes,cwnd_at_one_mss_fraction,loss_state_transitions,queue_disc_drops
+gigabit-reference,1,nonblocking,0.00092672,10,50,128,1448.0,1,3200,0
+gigabit-default,1,nonblocking,0.448223573333,1.2,2.4,192,1448.0,1,96,0
+gigabit-ack5,1,nonblocking,13.1503112533,1.2,2.4,192,121266.0,0,32,1056
+gigabit-ack1,1,nonblocking,14.88683008,1.2,2.4,192,127281.0,0,0,608
+gigabit-rto300,1,nonblocking,5.7155456000000004,1.2,2.4,192,91948.0,0.3333333333333333,32,288

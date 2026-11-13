@@ -1,0 +1,5 @@
+PASS paper-stride-8-s1-ecmp: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS paper-stride-8-s1-gff: 16 persistent (FCT N/A), 6 reroutes, 0 zero-payload censored
+PASS paper-stride-8-s1-nonblocking: 16 persistent (FCT N/A), 0 reroutes, 0 zero-payload censored
+PASS paper-stride-8-s1-sa: 16 persistent (FCT N/A), 4 reroutes, 0 zero-payload censored
+Validated 4 scenarios.
